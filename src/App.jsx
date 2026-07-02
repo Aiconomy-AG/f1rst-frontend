@@ -43,6 +43,7 @@ export default function App() {
     setEditingId(car.id);
     setFormData({ make: car.make, model: car.model, power: car.power });
   };
+  
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this car?")) {
@@ -63,7 +64,7 @@ export default function App() {
           <h3>{editingId ? "Edit Car" : "Add New Car"}</h3>
           <input type="text" name="make" placeholder="Make" value={formData.make} onChange={handleChange} required />
           <input type="text" name="model" placeholder="Model" value={formData.model} onChange={handleChange} required />
-          <input type="number" name="power" placeholder="Power (HP)" value={formData.power} onChange={handleChange} required />
+          <input type="number" name="cylinders" placeholder="Cylinder count" value={formData.power} onChange={handleChange} required />
           <button type="submit">{editingId ? "Update Car" : "Add Car"}</button>
           {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ make: '', model: '', power: '' }); }}>Cancel</button>}
         </form>
@@ -76,7 +77,7 @@ export default function App() {
                 <th>ID</th>
                 <th>Make</th>
                 <th>Model</th>
-                <th>Power</th>
+                <th>Cylinders</th>
                 <th>Actions</th>
               </tr>
               </thead>
@@ -86,7 +87,7 @@ export default function App() {
                     <td>{car.id}</td>
                     <td>{car.make}</td>
                     <td>{car.model}</td>
-                    <td>{car.power} HP</td>
+                    <td>{car.power}</td>
                     <td>
                       <button onClick={() => handleEdit(car)} style={{ marginRight: '5px' }}>Edit</button>
                       <button onClick={() => handleDelete(car.id)}>Delete</button>
