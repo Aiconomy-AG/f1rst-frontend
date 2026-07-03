@@ -64,7 +64,7 @@ export default function App() {
           <h3>{editingId ? "Edit Car" : "Add New Car"}</h3>
           <input type="text" name="make" placeholder="Make" value={formData.make} onChange={handleChange} required />
           <input type="text" name="model" placeholder="Model" value={formData.model} onChange={handleChange} required />
-          <input type="number" name="cylinders" placeholder="Cylinder count" value={formData.power} onChange={handleChange} required />
+          <input type="number" name="power" placeholder="Cylinder count" value={formData.power} onChange={handleChange} required />
           <button type="submit">{editingId ? "Update Car" : "Add Car"}</button>
           {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ make: '', model: '', power: '' }); }}>Cancel</button>}
         </form>
@@ -74,7 +74,6 @@ export default function App() {
             <table border="1" cellPadding="10" cellSpacing="0" style={{ width: '100%', textAlign: 'left' }}>
               <thead>
               <tr>
-                <th>ID</th>
                 <th>Make</th>
                 <th>Model</th>
                 <th>Cylinders</th>
@@ -84,7 +83,6 @@ export default function App() {
               <tbody>
               {cars.map((car) => (
                   <tr key={car.id}>
-                    <td>{car.id}</td>
                     <td>{car.make}</td>
                     <td>{car.model}</td>
                     <td>{car.power}</td>
