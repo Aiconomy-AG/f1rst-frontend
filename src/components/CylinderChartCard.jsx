@@ -14,7 +14,7 @@ const chartConfig = {
 export function CylinderDistributionChart({ data }) {
     // Format the data passed from the parent
     const formattedData = data.map((item) => ({
-        cylinders: `${item.cylinders}cc:`,
+        cylinders: `cc:${item.cylinders}`,
         count: item.count,
     }))
 
