@@ -2,27 +2,49 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pencil, Trash2 } from "lucide-react";
 import { CylinderDistributionChart } from "@/components/CylinderChartCard";
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
+
   const [cars, setCars] = useState([]);
   const [formData, setFormData] = useState({ make: '', model: '', power: '' });
   const [editingId, setEditingId] = useState(null);
   const [chartStats, setChartStats] = useState([]);
 
+  // Configure Axios to always send the token
   useEffect(() => {
-    document.title = "f1rst";
-    fetchCars();
-  }, []);
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      fetchCars();
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
+
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await axios.post('/login', loginForm);
+      localStorage.setItem('token', res.data.token);
+      setToken(res.data.token);
+      setUser(res.data.user);
+    } catch (error) {
+      alert("Invalid credentials");
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+    setCars([]);
+    setChartStats([]);
+  };
 
   const fetchCars = async () => {
     try {
@@ -35,9 +57,7 @@ export default function App() {
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,78 +91,74 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // LOGIN SCREEN
+  // -------------------------------------------------------------
+  if (!token) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 font-mono">
+          <div className="w-full max-w-sm space-y-6 p-8 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-xl">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-center">f1rst login</h1>
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <Input
+                  type="email"
+                  placeholder="Email"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
+                  required
+              />
+              <Input
+                  type="password"
+                  placeholder="Password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                  required
+              />
+              <Button type="submit" className="w-full uppercase font-bold tracking-widest">Sign In</Button>
+            </form>
+          </div>
+        </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // MAIN DASHBOARD (Only renders if authenticated)
+  // -------------------------------------------------------------
   return (
       <div className="max-w-6xl mx-auto p-8 font-mono">
-        <h1 className="text-5xl font-black uppercase tracking-tighter mb-12 text-zinc-900 dark:text-zinc-50 text-center">
-          f1rst
-        </h1>
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-5xl font-black uppercase tracking-tighter text-zinc-900 dark:text-zinc-50">f1rst</h1>
+          <Button variant="outline" onClick={logout} className="uppercase tracking-widest text-xs">Logout</Button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Left Column: Form & Chart */}
           <div className="lg:col-span-4 space-y-6">
             <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 text-center">
               {editingId ? "Edit Vehicle" : "New Vehicle"}
             </h2>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 bg-zinc-50 dark:bg-zinc-900/50 p-6 border-2 border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm">
-              <Input
-                  type="text"
-                  name="make"
-                  placeholder="Brand"
-                  value={formData.make}
-                  onChange={handleChange}
-                  required
-                  className="border-zinc-300 dark:border-zinc-700"
-              />
-              <Input
-                  type="text"
-                  name="model"
-                  placeholder="Model"
-                  value={formData.model}
-                  onChange={handleChange}
-                  required
-                  className="border-zinc-300 dark:border-zinc-700"
-              />
-              <Input
-                  type="number"
-                  name="power"
-                  placeholder="Cylinder count"
-                  value={formData.power}
-                  onChange={handleChange}
-                  required
-                  className="border-zinc-300 dark:border-zinc-700"
-              />
+              <Input type="text" name="make" placeholder="Brand" value={formData.make} onChange={handleChange} required />
+              <Input type="text" name="model" placeholder="Model" value={formData.model} onChange={handleChange} required />
+              <Input type="number" name="power" placeholder="Cylinder count" value={formData.power} onChange={handleChange} required />
 
               <div className="flex flex-col gap-3 mt-4">
                 <Button type="submit" className="w-full font-bold uppercase tracking-wider">
                   {editingId ? "Update" : "Add"}
                 </Button>
                 {editingId && (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full uppercase tracking-wider border-2"
-                        onClick={() => {
-                          setEditingId(null);
-                          setFormData({ make: '', model: '', power: '' });
-                        }}
-                    >
+                    <Button type="button" variant="outline" className="w-full uppercase tracking-wider border-2" onClick={() => { setEditingId(null); setFormData({ make: '', model: '', power: '' }); }}>
                       Cancel
                     </Button>
                 )}
               </div>
             </form>
 
-            {/* Chart is now inside the sidebar, controlled by the chartStats state */}
             <CylinderDistributionChart data={chartStats} />
           </div>
 
-          {/* Right Column: Table */}
           <div className="lg:col-span-8 space-y-3">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 text-center">
-              vehicle manager
-            </h2>
-
+            <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 text-center">vehicle manager</h2>
             {cars.length === 0 ? (
                 <div className="p-8 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-400 text-sm uppercase tracking-wider rounded-xl text-center">
                   No inventory detected.
@@ -166,24 +182,8 @@ export default function App() {
                               <TableCell>{car.model}</TableCell>
                               <TableCell>{car.power}</TableCell>
                               <TableCell className="text-right space-x-2">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="hover:bg-zinc-200 dark:hover:bg-zinc-800"
-                                    onClick={() => handleEdit(car)}
-                                    title="Edit"
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
-                                    onClick={() => handleDelete(car.id)}
-                                    title="Delete"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(car)} title="Edit"><Pencil className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" className="hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30" onClick={() => handleDelete(car.id)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
                               </TableCell>
                             </TableRow>
                         ))}
@@ -195,4 +195,5 @@ export default function App() {
           </div>
         </div>
       </div>
-  );}
+  );
+}
