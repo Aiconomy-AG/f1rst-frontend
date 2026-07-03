@@ -11,11 +11,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pencil, Trash2 } from "lucide-react";
+import { CylinderDistributionChart } from "@/components/CylinderChartCard";
 
 export default function App() {
   const [cars, setCars] = useState([]);
   const [formData, setFormData] = useState({ make: '', model: '', power: '' });
   const [editingId, setEditingId] = useState(null);
+  const [chartStats, setChartStats] = useState([]);
 
   useEffect(() => {
     document.title = "f1rst";
@@ -26,6 +28,8 @@ export default function App() {
     try {
       const response = await axios.get('/cars');
       setCars(response.data);
+      const statsResponse = await axios.get('/cars/cylinder-stats');
+      setChartStats(statsResponse.data);
     } catch (error) {
       console.error("Error fetching cars:", error);
     }
@@ -74,8 +78,8 @@ export default function App() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Left Column: Form */}
-          <div className="lg:col-span-4 space-y-3">
+          {/* Left Column: Form & Chart */}
+          <div className="lg:col-span-4 space-y-6">
             <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 text-center">
               {editingId ? "Edit Vehicle" : "New Vehicle"}
             </h2>
@@ -128,6 +132,9 @@ export default function App() {
                 )}
               </div>
             </form>
+
+            {/* Chart is now inside the sidebar, controlled by the chartStats state */}
+            <CylinderDistributionChart data={chartStats} />
           </div>
 
           {/* Right Column: Table */}
@@ -188,5 +195,4 @@ export default function App() {
           </div>
         </div>
       </div>
-  );
-}
+  );}
